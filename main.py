@@ -6,7 +6,7 @@ class NoteTakingApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Notenator")
-        self.root.geometry("800x600")
+        self.root.geometry("900x800")
 
         self.custom_font = font.Font(family="Helvetica", size=14)
         self.text_area = tk.Text(root, wrap='word', font=self.custom_font, bg="#f0f0f0", fg="#000000")
