@@ -5,7 +5,7 @@ from tkinter import simpledialog, messagebox, filedialog, font
 class NoteTakingApp:
     def __init__(self, root):
         self.root = root
-        self.root.title("Note Taking App")
+        self.root.title("Notenator")
         self.root.geometry("800x600")
 
         self.custom_font = font.Font(family="Helvetica", size=14)
