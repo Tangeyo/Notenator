@@ -2,7 +2,6 @@ import tkinter as tk
 from tkinter import simpledialog, messagebox, filedialog, font, ttk
 import os
 
-
 class NoteTakingApp:
     def __init__(self, root):
         self.root = root
@@ -31,7 +30,7 @@ class NoteTakingApp:
         self.file_menu.add_command(label="New Note", command=self.new_note)
         self.file_menu.add_command(label="New Folder", command=self.new_folder)
         self.file_menu.add_command(label="Open", command=self.open_note)
-        self.file_menu.add_command(label="Save", command=self.save_note)
+        self.file_menu.add_command(label="Save", command=self.save_note, accelerator="Ctrl+S")
         self.file_menu.add_separator()
         self.file_menu.add_command(label="Exit", command=root.quit)
 
@@ -52,6 +51,9 @@ class NoteTakingApp:
         self.tree.bind("<<TreeviewSelect>>", self.on_tree_select)
 
         self.load_tree()
+
+        #bind Ctrl+S to save_note function
+        root.bind("<Control-s>", lambda event: self.save_note())
 
     def load_tree(self):
         for item in self.tree.get_children():
