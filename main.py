@@ -69,6 +69,15 @@ class NoteTakingApp:
 
         self.tree.bind("<<TreeviewSelect>>", self.on_tree_select)
 
+        # Enable drag and drop
+        self.tree.bind("<ButtonPress-1>", self.on_tree_item_press)
+        self.tree.bind("<B1-Motion>", self.on_tree_item_drag)
+        self.tree.bind("<ButtonRelease-1>", self.on_tree_item_release)
+
+        self.dragging_item = None
+        self.drag_image_label = None
+        self.is_dragging = False
+
         self.load_tree()
 
     def load_tree(self):
@@ -95,6 +104,47 @@ class NoteTakingApp:
                 self.text_area.delete(1.0, tk.END)
                 self.text_area.insert(tk.END, file.read())
             self.status_bar.config(text=f"Opened {item_path}")
+
+    def on_tree_item_press(self, event):
+        item = self.tree.identify('item', event.x, event.y)
+        if item:
+            self.dragging_item = item
+            self.drag_data = {"x": event.x, "y": event.y}
+            self.drag_start_x = event.x
+            self.drag_start_y = event.y
+            self.is_dragging = False
+
+    def on_tree_item_drag(self, event):
+        if self.dragging_item:
+            if not self.is_dragging:
+                # Create the drag image label only when dragging starts
+                item_text = self.tree.item(self.dragging_item, "text")
+                self.drag_image_label = tk.Label(self.tree, text=item_text, relief=tk.SOLID, bg="lightgrey")
+                self.drag_image_label.place(x=event.x_root + 10, y=event.y_root + 10)  # Adjust position
+                self.is_dragging = True
+
+            # Move the drag image label with the cursor
+            x, y = event.x_root + 10, event.y_root + 10  # Adjust position
+            self.drag_image_label.place(x=x, y=y)
+
+    def on_tree_item_release(self, event):
+        if self.dragging_item:
+            target_item = self.tree.identify('item', event.x, event.y)
+            if target_item:
+                source_path = self.get_full_path(self.dragging_item)
+                target_path = self.get_full_path(target_item)
+                if os.path.isdir(target_path) and source_path != target_path and not source_path.startswith(target_path + os.sep):
+                    new_path = os.path.join(target_path, os.path.basename(source_path))
+                    os.rename(source_path, new_path)
+                    self.load_tree()
+            self.dragging_item = None
+
+        # Remove the drag image label if it exists
+        if self.drag_image_label:
+            self.drag_image_label.destroy()
+            self.drag_image_label = None
+
+        self.is_dragging = False
 
     def new_note(self):
         selected_item = self.tree.selection()
@@ -215,6 +265,7 @@ class NoteTakingApp:
                 self.text_area.tag_add(tag_name, tk.SEL_FIRST, tk.SEL_LAST)
         except tk.TclError:
             messagebox.showerror("Error", "No text selected")
+
 
 if __name__ == "__main__":
     if not os.path.exists("notes"):
