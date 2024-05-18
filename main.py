@@ -2,12 +2,11 @@ import tkinter as tk
 from tkinter import simpledialog, messagebox, filedialog, font, ttk
 import os
 
-
 class NoteTakingApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Notenator")
-        self.root.geometry("1200x800")
+        self.root.geometry("1200x1200")
 
         self.custom_font = font.Font(family="Helvetica", size=14)
 
@@ -120,11 +119,11 @@ class NoteTakingApp:
                 # Create the drag image label only when dragging starts
                 item_text = self.tree.item(self.dragging_item, "text")
                 self.drag_image_label = tk.Label(self.tree, text=item_text, relief=tk.SOLID, bg="lightgrey")
-                self.drag_image_label.place(x=event.x_root + 10, y=event.y_root + 10)  # Adjust position
+                self.drag_image_label.place(x=event.x_root, y=event.y_root)  # Adjust position
                 self.is_dragging = True
 
             # Move the drag image label with the cursor
-            x, y = event.x_root + 10, event.y_root + 10  # Adjust position
+            x, y = event.x_root - 10, event.y_root - 10  # Adjust position
             self.drag_image_label.place(x=x, y=y)
 
     def on_tree_item_release(self, event):
