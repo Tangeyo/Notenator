@@ -14,6 +14,22 @@ class NoteTakingApp:
         self.main_frame = tk.Frame(root)
         self.main_frame.pack(fill=tk.BOTH, expand=1)
 
+        self.toolbar = tk.Frame(self.main_frame)
+        self.toolbar.pack(side=tk.TOP, fill=tk.X)
+
+        self.bold_button = tk.Button(self.toolbar, text="Bold", command=self.make_bold)
+        self.bold_button.pack(side=tk.LEFT, padx=2, pady=2)
+
+        self.italic_button = tk.Button(self.toolbar, text="Italic", command=self.make_italic)
+        self.italic_button.pack(side=tk.LEFT, padx=2, pady=2)
+
+        self.underline_button = tk.Button(self.toolbar, text="Underline", command=self.make_underline)
+        self.underline_button.pack(side=tk.LEFT, padx=2, pady=2)
+
+        self.font_size_var = tk.IntVar(value=14)
+        self.font_size_menu = tk.OptionMenu(self.toolbar, self.font_size_var, *list(range(8, 33)), command=self.change_font_size)
+        self.font_size_menu.pack(side=tk.LEFT, padx=2, pady=2)
+
         self.tree_frame = tk.Frame(self.main_frame)
         self.tree_frame.pack(side=tk.LEFT, fill=tk.Y)
 
@@ -42,7 +58,9 @@ class NoteTakingApp:
         self.status_bar = tk.Label(root, text="Welcome to Notenator", bd=1, relief=tk.SUNKEN, anchor=tk.W)
         self.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
-        self.text_area.tag_config('highlight', background='yellow')
+        self.text_area.tag_configure('bold', font=(self.custom_font.actual("family"), self.custom_font.actual("size"), 'bold'))
+        self.text_area.tag_configure('italic', font=(self.custom_font.actual("family"), self.custom_font.actual("size"), 'italic'))
+        self.text_area.tag_configure('underline', font=(self.custom_font.actual("family"), self.custom_font.actual("size"), 'underline'))
 
         self.tree = ttk.Treeview(self.tree_frame)
         self.tree.pack(fill=tk.Y, expand=1)
@@ -124,7 +142,7 @@ class NoteTakingApp:
             item = self.tree.parent(item)
         path.reverse()
         # Remove the root node ("Notes") from the path
-        if path[0] == "Notes":
+        if path and path[0] == "Notes":
             path.pop(0)
         full_path = os.path.join("notes", *path)
         print(f"Constructed full path: {full_path}")  # Debug statement
@@ -173,6 +191,30 @@ class NoteTakingApp:
             messagebox.showinfo("Result", "Search term not found.")
             self.status_bar.config(text=f"'{search_term}' not found")
 
+    def make_bold(self):
+        self.apply_tag('bold')
+
+    def make_italic(self):
+        self.apply_tag('italic')
+
+    def make_underline(self):
+        self.apply_tag('underline')
+
+    def change_font_size(self, size):
+        self.custom_font.configure(size=int(size))
+        self.text_area.tag_configure('bold', font=(self.custom_font.actual("family"), self.custom_font.actual("size"), 'bold'))
+        self.text_area.tag_configure('italic', font=(self.custom_font.actual("family"), self.custom_font.actual("size"), 'italic'))
+        self.text_area.tag_configure('underline', font=(self.custom_font.actual("family"), self.custom_font.actual("size"), 'underline'))
+
+    def apply_tag(self, tag_name):
+        try:
+            current_tags = self.text_area.tag_names(tk.SEL_FIRST)
+            if tag_name in current_tags:
+                self.text_area.tag_remove(tag_name, tk.SEL_FIRST, tk.SEL_LAST)
+            else:
+                self.text_area.tag_add(tag_name, tk.SEL_FIRST, tk.SEL_LAST)
+        except tk.TclError:
+            messagebox.showerror("Error", "No text selected")
 
 if __name__ == "__main__":
     if not os.path.exists("notes"):
