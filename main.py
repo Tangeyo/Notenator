@@ -6,12 +6,28 @@ class NoteTakingApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Notenator")
-        self.root.geometry("1200x800")
+        self.root.geometry("1200x1200")
 
         self.custom_font = font.Font(family="Helvetica", size=14)
 
         self.main_frame = tk.Frame(root)
         self.main_frame.pack(fill=tk.BOTH, expand=1)
+
+        self.toolbar = tk.Frame(self.main_frame)
+        self.toolbar.pack(side=tk.TOP, fill=tk.X)
+
+        self.bold_button = tk.Button(self.toolbar, text="Bold", command=self.make_bold)
+        self.bold_button.pack(side=tk.LEFT, padx=2, pady=2)
+
+        self.italic_button = tk.Button(self.toolbar, text="Italic", command=self.make_italic)
+        self.italic_button.pack(side=tk.LEFT, padx=2, pady=2)
+
+        self.underline_button = tk.Button(self.toolbar, text="Underline", command=self.make_underline)
+        self.underline_button.pack(side=tk.LEFT, padx=2, pady=2)
+
+        self.font_size_var = tk.IntVar(value=14)
+        self.font_size_menu = tk.OptionMenu(self.toolbar, self.font_size_var, *list(range(8, 33)), command=self.change_font_size)
+        self.font_size_menu.pack(side=tk.LEFT, padx=2, pady=2)
 
         self.tree_frame = tk.Frame(self.main_frame)
         self.tree_frame.pack(side=tk.LEFT, fill=tk.Y)
@@ -41,7 +57,9 @@ class NoteTakingApp:
         self.status_bar = tk.Label(root, text="Welcome to Notenator", bd=1, relief=tk.SUNKEN, anchor=tk.W)
         self.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
 
-        self.text_area.tag_config('highlight', background='yellow')
+        self.text_area.tag_configure('bold', font=(self.custom_font.actual("family"), self.custom_font.actual("size"), 'bold'))
+        self.text_area.tag_configure('italic', font=(self.custom_font.actual("family"), self.custom_font.actual("size"), 'italic'))
+        self.text_area.tag_configure('underline', font=(self.custom_font.actual("family"), self.custom_font.actual("size"), 'underline'))
 
         self.tree = ttk.Treeview(self.tree_frame)
         self.tree.pack(fill=tk.Y, expand=1)
@@ -49,6 +67,15 @@ class NoteTakingApp:
         self.tree.heading("#0", text="Notes", anchor=tk.W)
 
         self.tree.bind("<<TreeviewSelect>>", self.on_tree_select)
+
+        # Enable drag and drop
+        self.tree.bind("<ButtonPress-1>", self.on_tree_item_press)
+        self.tree.bind("<B1-Motion>", self.on_tree_item_drag)
+        self.tree.bind("<ButtonRelease-1>", self.on_tree_item_release)
+
+        self.dragging_item = None
+        self.drag_image_label = None
+        self.is_dragging = False
 
         self.load_tree()
 
@@ -79,6 +106,47 @@ class NoteTakingApp:
                 self.text_area.delete(1.0, tk.END)
                 self.text_area.insert(tk.END, file.read())
             self.status_bar.config(text=f"Opened {item_path}")
+
+    def on_tree_item_press(self, event):
+        item = self.tree.identify('item', event.x, event.y)
+        if item:
+            self.dragging_item = item
+            self.drag_data = {"x": event.x, "y": event.y}
+            self.drag_start_x = event.x
+            self.drag_start_y = event.y
+            self.is_dragging = False
+
+    def on_tree_item_drag(self, event):
+        if self.dragging_item:
+            if not self.is_dragging:
+                # Create the drag image label only when dragging starts
+                item_text = self.tree.item(self.dragging_item, "text")
+                self.drag_image_label = tk.Label(self.tree, text=item_text, relief=tk.SOLID, bg="lightgrey")
+                self.drag_image_label.place(x=event.x_root, y=event.y_root)  # Adjust position
+                self.is_dragging = True
+
+            # Move the drag image label with the cursor
+            x, y = event.x_root - 10, event.y_root - 10  # Adjust position
+            self.drag_image_label.place(x=x, y=y)
+
+    def on_tree_item_release(self, event):
+        if self.dragging_item:
+            target_item = self.tree.identify('item', event.x, event.y)
+            if target_item:
+                source_path = self.get_full_path(self.dragging_item)
+                target_path = self.get_full_path(target_item)
+                if os.path.isdir(target_path) and source_path != target_path and not source_path.startswith(target_path + os.sep):
+                    new_path = os.path.join(target_path, os.path.basename(source_path))
+                    os.rename(source_path, new_path)
+                    self.load_tree()
+            self.dragging_item = None
+
+        # Remove the drag image label if it exists
+        if self.drag_image_label:
+            self.drag_image_label.destroy()
+            self.drag_image_label = None
+
+        self.is_dragging = False
 
     def new_note(self):
         selected_item = self.tree.selection()
@@ -126,7 +194,7 @@ class NoteTakingApp:
             item = self.tree.parent(item)
         path.reverse()
         # Remove the root node ("Notes") from the path
-        if path[0] == "Notes":
+        if path and path[0] == "Notes":
             path.pop(0)
         full_path = os.path.join("notes", *path)
         print(f"Constructed full path: {full_path}")  # Debug statement
@@ -174,6 +242,31 @@ class NoteTakingApp:
         else:
             messagebox.showinfo("Result", "Search term not found.")
             self.status_bar.config(text=f"'{search_term}' not found")
+
+    def make_bold(self):
+        self.apply_tag('bold')
+
+    def make_italic(self):
+        self.apply_tag('italic')
+
+    def make_underline(self):
+        self.apply_tag('underline')
+
+    def change_font_size(self, size):
+        self.custom_font.configure(size=int(size))
+        self.text_area.tag_configure('bold', font=(self.custom_font.actual("family"), self.custom_font.actual("size"), 'bold'))
+        self.text_area.tag_configure('italic', font=(self.custom_font.actual("family"), self.custom_font.actual("size"), 'italic'))
+        self.text_area.tag_configure('underline', font=(self.custom_font.actual("family"), self.custom_font.actual("size"), 'underline'))
+
+    def apply_tag(self, tag_name):
+        try:
+            current_tags = self.text_area.tag_names(tk.SEL_FIRST)
+            if tag_name in current_tags:
+                self.text_area.tag_remove(tag_name, tk.SEL_FIRST, tk.SEL_LAST)
+            else:
+                self.text_area.tag_add(tag_name, tk.SEL_FIRST, tk.SEL_LAST)
+        except tk.TclError:
+            messagebox.showerror("Error", "No text selected")
 
 
 if __name__ == "__main__":
