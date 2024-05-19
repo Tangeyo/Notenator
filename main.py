@@ -43,9 +43,9 @@ class NoteTakingApp:
 
         self.file_menu = tk.Menu(self.menu, tearoff=0)
         self.menu.add_cascade(label="File", menu=self.file_menu)
-        self.file_menu.add_command(label="New Note", command=self.new_note)
-        self.file_menu.add_command(label="New Folder", command=self.new_folder)
-        self.file_menu.add_command(label="Open", command=self.open_note)
+        self.file_menu.add_command(label="New Note", command=self.new_note, accelerator="Ctrl+N")
+        self.file_menu.add_command(label="New Folder", command=self.new_folder, accelerator="Ctrl+F")
+        self.file_menu.add_command(label="Open", command=self.open_note, accelerator="Ctrl+O")
         self.file_menu.add_command(label="Save", command=self.save_note, accelerator="Ctrl+S")
         self.file_menu.add_separator()
         self.file_menu.add_command(label="Exit", command=root.quit)
@@ -81,6 +81,9 @@ class NoteTakingApp:
 
         #bind Ctrl+S to save_note function
         root.bind("<Control-s>", lambda event: self.save_note())
+        root.bind("<Control-o>", lambda event: self.open_note())
+        root.bind("<Control-f>", lambda event: self.new_folder())
+        root.bind("<Control-n>", lambda event: self.new_note())
 
     def load_tree(self):
         for item in self.tree.get_children():
