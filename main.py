@@ -186,7 +186,7 @@ class NoteTakingApp:
             try:
                 os.makedirs(folder_path)
                 self.load_tree()
-                self.status_bar.config(text=f"Created new folder {folder_path}")
+                self.status_bar.config(text=f"Created new sub folder {folder_path}")
             except Exception as e:
                 messagebox.showerror("Error", f"Failed to create folder: {e}")
 
