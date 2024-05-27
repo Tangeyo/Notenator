@@ -47,12 +47,13 @@ class NoteTakingApp:
         self.file_menu.add_command(label="New Folder", command=self.new_folder, accelerator="Ctrl+F")
         self.file_menu.add_command(label="Open", command=self.open_note, accelerator="Ctrl+O")
         self.file_menu.add_command(label="Save", command=self.save_note, accelerator="Ctrl+S")
+
         self.file_menu.add_separator()
         self.file_menu.add_command(label="Exit", command=root.quit)
 
         self.edit_menu = tk.Menu(self.menu, tearoff=0)
         self.menu.add_cascade(label="Edit", menu=self.edit_menu)
-        self.edit_menu.add_command(label="Search", command=self.search_note)
+        self.edit_menu.add_command(label="Search", command=self.search_note, accelerator="Ctrl+E")
 
         self.status_bar = tk.Label(root, text="Welcome to Notenator", bd=1, relief=tk.SUNKEN, anchor=tk.W)
         self.status_bar.pack(side=tk.BOTTOM, fill=tk.X)
@@ -84,6 +85,7 @@ class NoteTakingApp:
         root.bind("<Control-o>", lambda event: self.open_note())
         root.bind("<Control-f>", lambda event: self.new_folder())
         root.bind("<Control-n>", lambda event: self.new_note())
+        root.bind("<Control-e>", lambda event: self.search_note())
 
     def load_tree(self):
         for item in self.tree.get_children():
