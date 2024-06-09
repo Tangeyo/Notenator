@@ -30,7 +30,7 @@ Welcome to Notenator, a simple yet powerful note-taking application built using 
 3. Run the application using the command:
 
 ```bash
-python main.py
+python3 main.py
 ```
 
 ## Usage + Commands
