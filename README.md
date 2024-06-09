@@ -78,7 +78,7 @@ python main.py
 
 ### Exiting
 1. Click on `File` in the menu bar.
-2. Select Exit.
+2. Select `Exit`.
 
 ## Notes Storage
 
